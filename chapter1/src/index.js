@@ -1,9 +1,7 @@
 import "./style.css"
 import * as THREE from "three"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls"
 import gsap from "gsap"
-
-// When using position, make sure you understand what each coordinate will
-// be in terms of metrics (1 can be 1 meter or 1cm, up to u)
 
 // Scene
 const scene = new THREE.Scene()
@@ -16,40 +14,56 @@ scene.add(mesh)
 
 // Sizes
 const sizes = {
-	width: 800,
-	height: 600,
+	width: window.innerWidth,
+	height: window.innerHeight,
 }
 
-// different cameras
-// arraycamera = render scene multiple times using multiple cameras
-// stereocamera: render the scene through two cameras that mimic the eyes to create parallax effect
-// cubecamera = 6 renders, facing different directions good for environments, reflections, shadow
-// orthographic camera = render the scene without perspective
-// perspective camera: needs parameters
+// RESIZING EVENT!
+window.addEventListener("resize", (e) => {
+	sizes.width = window.innerWidth
+	sizes.height = window.innerHeight
 
-// perspectivecamera
-// params: FOV (vertical), Aspect ratio (width / height), near, and far parameter ( any object closer than near or further than far will not show up)
-// don't use extreme values to prevent z-fighting
-// const camera = new THREE.PerspectiveCamera(50, sizes.width / sizes.height, 1, 3)
+	// update camera
+	camera.aspect = sizes.width / sizes.height
+	camera.updateProjectionMatrix()
 
-// orthographic camera
-// params: left, right, top, bottom, then near & far
-const aspectRatio = sizes.width / sizes.height
-const camera = new THREE.OrthographicCamera(
-	-1 * aspectRatio,
-	1 * aspectRatio,
+	// update renderer
+	renderer.setSize(sizes.width, sizes.height)
+
+	// pixel ratio
+	// You might have jittery edges because of your computers
+	// pixel ratio = how many physical pixesl you have on the screen
+	// to fix this: highest pixel ratios are usually on teh weakest devices aka mobiles
+	// only have a pixel ratio up to 2
+	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+
+// double click for full-screen
+window.addEventListener("dblclick", (e) => {
+	if (!document.fullscreenElement) {
+		document.getElementById("root").requestFullscreen()
+	} else {
+		document.exitFullscreen()
+	}
+})
+
+// Camera
+const camera = new THREE.PerspectiveCamera(
+	50,
+	sizes.width / sizes.height,
 	1,
-	-1,
-	0.1,
-	100
+	80
 )
-camera.position.x = 2
-camera.position.z = 2
-camera.position.y = 2
-console.log(camera.position.length())
+camera.position.z = 3
 camera.lookAt(mesh.position)
 scene.add(camera)
 
+// Controls -> orbit-control
+const orbitControl = new OrbitControls(camera, document.getElementById("root"))
+
+// Damping controls -> make sure to update and keep damping
+orbitControl.enableDamping = true
+orbitControl.enabled = true
 // Renderer
 const renderer = new THREE.WebGLRenderer({
 	canvas: document.getElementById("root"),
@@ -57,12 +71,9 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setSize(sizes.width, sizes.height)
 
-const clock = new THREE.Clock()
-
 const loop = () => {
-	const elapsedTime = clock.getElapsedTime()
-	mesh.rotation.y = elapsedTime
 	renderer.render(scene, camera)
+	orbitControl.update()
 	window.requestAnimationFrame(loop)
 }
 
