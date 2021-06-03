@@ -6,11 +6,46 @@ import gsap from "gsap"
 // Scene
 const scene = new THREE.Scene()
 
+/* ---- GEOMETRIES ---  */
+
+// How to store buffer geometry data -> Float32Array, fixed length & easier to handle
+// under the hood, javascript uses dynamic arrays -> think about how it allocates memory
+// once you exceed the current length and other memory slots are taken, your computer is going
+// to look for other open memory slots, which often means having to move the entire slot where
+// back to back positions/slots are available
+// this can be harder on other computers, so lets declare a fixed array
+// IMPROVE PERFORMANCE!
+// const positionsArray = new Float32Array([
+// 	0,
+// 	0,
+// 	0, // first vertex
+// 	0,
+// 	1,
+// 	0, // second vertex
+// 	1,
+// 	0,
+// 	0, //  third vertex
+// ])
+// const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+// geometry.setAttribute("position", positionsAttribute)
+
+const geometry = new THREE.BufferGeometry()
+const count = 50
+const positionsArray = new Float32Array(count * 3 * 3)
+
+for (let i = 0; i < count * 3 * 3; i++) {
+	positionsArray[i] = Math.random() - 0.5
+}
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+
+geometry.setAttribute("position", positionsAttribute)
 // Object
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: "blue" })
+// const geometry = new THREE.BoxGeometry(1, 1, 1)
+const material = new THREE.MeshBasicMaterial({ color: "blue", wireframe: true })
 const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
+
+/* ------------------------ */
 
 // Sizes
 const sizes = {
